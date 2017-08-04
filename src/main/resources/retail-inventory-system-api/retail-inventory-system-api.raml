@@ -1,0 +1,68 @@
+#%RAML 1.0
+baseUri: http://localhost:8081/api
+title: retail-inventory-system-api
+version: new
+
+traits: 
+  productSearch: !include traits/productSearch.raml
+
+types: 
+  
+  InventoryQueryResponse:
+    properties:
+      productId: string
+      variantId: string
+      warehouses: Warehouse[]
+      
+  InventoryReserveRequest:
+    properties:
+      productId: string
+      variantId: string
+      customerId: string
+      quantity: integer
+      locationId: string
+      deliveryMethod: 
+        type: string
+        enum: [SHIPMENT, PICKUP]
+  
+  Warehouse:
+    type: object
+    properties:
+      warehouseId: string
+      name?: string  
+      availableCount?:
+        type: number
+        minimum: 0
+      reservedCount?: 
+        type: number
+        minimum: 0
+      lastUpdated?: datetime
+      
+      
+/availability:
+    get:
+      description: This endpoint will return product variant availability information based on product/variant ID or further filtered by concrete location ID or location type (store/warehouse).
+      is: [ productSearch ]
+      responses: 
+        200:
+          body: 
+            application/json:
+              type: InventoryQueryResponse
+              example: !include examples/inventory-response-example.raml
+      
+/reservation:
+    post:
+      description: reservation of product in store
+      body: 
+        application/json:
+          type: InventoryReserveRequest
+          example: !include examples/inventory-reserve-request.raml
+      responses: 
+        201: 
+          body: 
+            application/json: 
+              example: |
+                {
+                  "message": "Product was reserved" 
+                }
+        

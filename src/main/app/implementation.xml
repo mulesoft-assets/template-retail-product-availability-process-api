@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    
+    
+    <flow name="getAvailability">
+        <flow-ref name="getWarehousesAvailability" doc:name="getWarehousesAvailability"/>
+        <flow-ref name="getStoresAvailability" doc:name="getStoresAvailability"/>
+        <logger level="INFO" doc:name="Logger"/>
+        <dw:transform-message doc:name="Response message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	productId: inboundProperties."http.query.params".productId,
+	variantId: inboundProperties.'http.query.params'.variantId,
+	warehousesAvailability: (flowVars.warehousesAvailability.warehouses filter ($.availableCount >= inboundProperties.'http.query.params'.quantity)),
+	storesAvailability: (flowVars.storesAvailability.results filter ($.quantityInStock >= inboundProperties.'http.query.params'.quantity))
+}]]></dw:set-payload>
+
+        </dw:transform-message>
+    </flow>
+    <flow name="getStoresAvailability">
+         <enricher source="#[payload]" target="#[flowVars.storesAvailability]" doc:name="save to var locations">
+            <processor-chain doc:name="Processor Chain">
+            	<http:request config-ref="locations-system-api" path="/productLocator" method="GET" doc:name="GET /storeAvailability">
+                    <http:request-builder>
+                        <http:query-param paramName="productId" value="#[message.inboundProperties.'http.query.params'.productId]"/>
+                        <http:query-param paramName="variantId" value="#[message.inboundProperties.'http.query.params'.variantId]"/>
+                        <http:query-param paramName="quantity" value="#[message.inboundProperties.'http.query.params'.quantity]"/>
+                        <http:query-param paramName="latitude" value="#[message.inboundProperties.'http.query.params'.latitude]"/>
+                        <http:query-param paramName="longitude" value="#[message.inboundProperties.'http.query.params'.longitude]"/>
+                        <http:query-param paramName="radius" value="#[message.inboundProperties.'http.query.params'.radius]"/>
+                        <http:query-param paramName="metric" value="#[message.inboundProperties.'http.query.params'.metric]"/>
+
+                    </http:request-builder>
+                </http:request>
+                <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Logger"/>
+                <json:json-to-object-transformer returnClass="java.util.Map" doc:name="JSON to Object" mimeType="application/java"/>
+            </processor-chain>
+        </enricher>
+    </flow>
+    <flow name="getWarehousesAvailability">
+    	 <enricher source="#[payload]" target="#[flowVars.warehousesAvailability]" doc:name="save to var availability">
+            <processor-chain doc:name="Processor Chain">
+                <http:request config-ref="inventory-system-api" path="/availability" method="GET" doc:name="GET /warehousesAvailability">
+                    <http:request-builder>
+                        <http:query-param paramName="productId" value="#[message.inboundProperties.'http.query.params'.productId]"/>
+                        <http:query-param paramName="variantId" value="#[message.inboundProperties.'http.query.params'.variantId]"/>
+                        <http:query-param paramName="quantity" value="#[message.inboundProperties.'http.query.params'.quantity]"/>
+
+                    </http:request-builder>
+                </http:request>
+                <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Logger"/>
+                <json:json-to-object-transformer returnClass="java.util.Map" doc:name="JSON to Object" mimeType="application/java"/>
+            </processor-chain>
+        </enricher>
+    </flow>
+    <flow name="createReservation">
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+payload]]></dw:set-payload>
+            <dw:set-variable variableName="input"><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-variable>
+        </dw:transform-message>
+
+        <choice doc:name="Choice">
+            <when expression="#[flowVars.input.deliveryMethod == 'PICKUP']">
+                <http:request config-ref="locations-system-api" path="/reservation" method="POST" doc:name="POST/reservation for Store">
+                    <http:request-builder>
+                        <http:header headerName="Content-Type" value="application/json"/>
+                    </http:request-builder>
+                </http:request>
+
+            </when>
+            <otherwise>
+                <http:request config-ref="inventory-system-api" path="/reservation" method="POST" doc:name="POST/reservation for Warehouse">
+                    <http:request-builder>
+                        <http:header headerName="Content-Type" value="application/json"/>
+                    </http:request-builder>
+                </http:request>
+
+            </otherwise>
+        </choice>
+
+        <dw:transform-message doc:name="Transform Message">
+        	<dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	message: "Product was reserved"
+}]]></dw:set-payload>
+            <dw:set-property propertyName="http.status"><![CDATA[%dw 1.0
+%output application/java
+---
+201]]></dw:set-property>
+        </dw:transform-message>
+
+    </flow>
+</mule>
