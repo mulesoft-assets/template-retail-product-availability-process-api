@@ -65,7 +65,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         </enricher>
     </flow>
     <flow name="createReservation">
-        <dw:transform-message doc:name="Transform Message">
+        <dw:transform-message doc:name="Input message">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
@@ -78,11 +78,24 @@ payload]]></dw:set-variable>
 
         <choice doc:name="Choice">
             <when expression="#[flowVars.input.deliveryMethod == 'PICKUP']">
+                <dw:transform-message doc:name="Transform Message for Store">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	customerId: payload.customerId,
+	storeId: payload.locationId, 
+	productId: payload.productId,
+	variantId: payload.variantId, 
+	quantity: payload.quantity
+}]]></dw:set-payload>
+                </dw:transform-message>
                 <http:request config-ref="locations-system-api" path="/reservation" method="POST" doc:name="POST/reservation for Store">
                     <http:request-builder>
                         <http:header headerName="Content-Type" value="application/json"/>
                     </http:request-builder>
                 </http:request>
+                <logger level="INFO" doc:name="Logger"/>
 
             </when>
             <otherwise>
