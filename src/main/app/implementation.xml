@@ -14,6 +14,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
     <flow name="getAvailability">
         <flow-ref name="getWarehousesAvailability" doc:name="getWarehousesAvailability"/>
         <flow-ref name="getStoresAvailability" doc:name="getStoresAvailability"/>
+        <flow-ref name="getPartnersAvailability" doc:name="getPartnersAvailability"/>
         <logger level="INFO" doc:name="Logger"/>
         <dw:transform-message doc:name="Response message">
             <dw:set-payload><![CDATA[%dw 1.0
@@ -23,13 +24,54 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 	productId: inboundProperties."http.query.params".productId,
 	variantId: inboundProperties.'http.query.params'.variantId,
 	warehousesAvailability: (flowVars.warehousesAvailability.warehouses filter ($.availableCount >= inboundProperties.'http.query.params'.quantity)),
-	storesAvailability: (flowVars.storesAvailability.results filter ($.quantityInStock >= inboundProperties.'http.query.params'.quantity))
+	storesAvailability: flowVars.storesAvailability.results,
+	partnersAvailability: flowVars.partnersAvailability.results
 }]]></dw:set-payload>
 
         </dw:transform-message>
     </flow>
+    <flow name="getAvailabilityForLocation">
+        <dw:transform-message doc:name="Save locationType">
+            <dw:set-variable variableName="locationType"><![CDATA[%dw 1.0
+%output application/java
+---
+inboundProperties."http.query.params".locationType]]></dw:set-variable>
+        </dw:transform-message>
+        <choice doc:name="Choice">
+            <when expression="#[flowVars.locationType =='STORE']">
+                <flow-ref name="getStoresAvailability" doc:name="getStoresAvailability"/>
+                <dw:transform-message doc:name="Filter Store">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+flowVars.storesAvailability.results filter ($.storeInfo.storeId == flowVars.locationId)
+]]></dw:set-payload>
+                </dw:transform-message>
+            </when>
+            <when expression="#[flowVars.locationType =='PARTNER']">
+                <flow-ref name="getPartnersAvailability" doc:name="getPartnersAvailability"/>
+                <dw:transform-message doc:name="Filter Partner">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+flowVars.partnersAvailability.results filter ($.partnerInfo.partnerId == flowVars.locationId)
+]]></dw:set-payload>
+                </dw:transform-message>
+            </when>
+            <otherwise>
+                <flow-ref name="getWarehousesAvailability" doc:name="getWarehousesAvailability"/>
+                <dw:transform-message doc:name="Filter Warehouse">
+                    <dw:input-payload/>
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+flowVars.warehousesAvailability.warehouses filter ($.availableCount >= inboundProperties.'http.query.params'.quantity and $.warehouseId == flowVars.locationId)]]></dw:set-payload>
+                </dw:transform-message>
+            </otherwise>
+        </choice>
+    </flow>
     <flow name="getStoresAvailability">
-         <enricher source="#[payload]" target="#[flowVars.storesAvailability]" doc:name="save to var locations">
+         <enricher source="#[payload]" target="#[flowVars.storesAvailability]" doc:name="save to var storesAvailability">
             <processor-chain doc:name="Processor Chain">
             	<http:request config-ref="locations-system-api" path="/productLocator" method="GET" doc:name="GET /storeAvailability">
                     <http:request-builder>
@@ -49,9 +91,24 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         </enricher>
     </flow>
     <flow name="getWarehousesAvailability">
-    	 <enricher source="#[payload]" target="#[flowVars.warehousesAvailability]" doc:name="save to var availability">
+    	 <enricher source="#[payload]" target="#[flowVars.warehousesAvailability]" doc:name="save to var warehousesAvailability">
             <processor-chain doc:name="Processor Chain">
                 <http:request config-ref="inventory-system-api" path="/availability" method="GET" doc:name="GET /warehousesAvailability">
+                    <http:request-builder>
+                        <http:query-param paramName="productId" value="#[message.inboundProperties.'http.query.params'.productId]"/>
+                        <http:query-param paramName="variantId" value="#[message.inboundProperties.'http.query.params'.variantId]"/>
+                        <http:query-param paramName="quantity" value="#[message.inboundProperties.'http.query.params'.quantity]"/>
+                    </http:request-builder>
+                </http:request>
+                <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Logger"/>
+                <json:json-to-object-transformer returnClass="java.util.Map" doc:name="JSON to Object" mimeType="application/java"/>
+            </processor-chain>
+        </enricher>
+    </flow>
+    <flow name="getPartnersAvailability">
+        <enricher source="#[payload]" target="#[flowVars.partnersAvailability]" doc:name="save to var partnersAvailability">
+            <processor-chain doc:name="Processor Chain">
+            	<http:request config-ref="partners-system-api" path="/productSearch" method="GET" doc:name="GET /partnersAvailability">
                     <http:request-builder>
                         <http:query-param paramName="productId" value="#[message.inboundProperties.'http.query.params'.productId]"/>
                         <http:query-param paramName="variantId" value="#[message.inboundProperties.'http.query.params'.variantId]"/>
@@ -73,11 +130,11 @@ payload]]></dw:set-payload>
             <dw:set-variable variableName="input"><![CDATA[%dw 1.0
 %output application/java
 ---
-payload]]></dw:set-variable>
+payload.locationType]]></dw:set-variable>
         </dw:transform-message>
 
         <choice doc:name="Choice">
-            <when expression="#[flowVars.input.deliveryMethod == 'PICKUP']">
+            <when expression="#[flowVars.input == 'STORE']">
                 <dw:transform-message doc:name="Transform Message for Store">
                     <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
@@ -95,15 +152,51 @@ payload]]></dw:set-variable>
                         <http:header headerName="Content-Type" value="application/json"/>
                     </http:request-builder>
                 </http:request>
-                <logger level="INFO" doc:name="Logger"/>
+
 
             </when>
-            <otherwise>
-                <http:request config-ref="inventory-system-api" path="/reservation" method="POST" doc:name="POST/reservation for Warehouse">
+            <when expression="#[flowVars.input == 'PARTNER']">
+                <dw:transform-message doc:name="Transform Message for Partner">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	customerId: payload.customerId,
+	partnerId: payload.locationId, 
+	productId: payload.productId,
+	variantId: payload.variantId, 
+	quantity: payload.quantity,
+	deliveryMethod:payload.deliveryMethod
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <http:request config-ref="partners-system-api" path="/reservation" method="POST" doc:name="POST/reservation for Partner">
                     <http:request-builder>
                         <http:header headerName="Content-Type" value="application/json"/>
                     </http:request-builder>
                 </http:request>
+            </when>
+            <otherwise>
+                <dw:transform-message doc:name="Transform Message for Warehouse">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	customerId: payload.customerId,
+	warehouseId: payload.locationId, 
+	productId: payload.productId,
+	variantId: payload.variantId, 
+	quantity: payload.quantity, 
+	deliveryMethod: payload.deliveryMethod
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <http:request config-ref="inventory-system-api" path="/reservation" method="POST" doc:name="POST/reservation for Warehouse">
+                    <http:request-builder>
+                        <http:header headerName="Content-Type" value="application/json"/>
+
+                    </http:request-builder>
+                </http:request>
+
+
 
             </otherwise>
         </choice>
