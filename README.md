@@ -21,7 +21,10 @@ Please review the terms of the license before downloading and using this templat
 As a Customer I want a service to request information about availability of products and reserve products from order.   
 
 ### GET/availability
-This endpoint will trigger flow getAvailability which obtains availability of product variants in stores from Locations System API and Inventory System API. 
+This endpoint will trigger flow getAvailability which obtains availability of product variants in stores from Locations System API, partners from Partners System API and warehouse from Inventory System API. 
+
+### GET/locations/{locationId}/availability
+This endpoint will trigger flow getAvailabilityForLocation which obtains availability of product variants based on the locationId and locationType (STORE,  WAREHOUSE, PARTNER). 
 
 ### POST/reservation
 This endpoint will trigger flow createReservation which reserves variant in store or warehouse.
