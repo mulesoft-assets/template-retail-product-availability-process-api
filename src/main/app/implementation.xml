@@ -47,6 +47,15 @@ inboundProperties."http.query.params".locationType]]></dw:set-variable>
 flowVars.storesAvailability.results filter ($.storeInfo.storeId == flowVars.locationId)
 ]]></dw:set-payload>
                 </dw:transform-message>
+                <dw:transform-message doc:name="Transform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	quantity: payload[0].quantityInStock when (payload[0] != null)
+		otherwise 0
+}]]></dw:set-payload>
+                </dw:transform-message>
             </when>
             <when expression="#[flowVars.locationType =='PARTNER']">
                 <flow-ref name="getPartnersAvailability" doc:name="getPartnersAvailability"/>
@@ -57,6 +66,15 @@ flowVars.storesAvailability.results filter ($.storeInfo.storeId == flowVars.loca
 flowVars.partnersAvailability.results filter ($.partnerInfo.partnerId == flowVars.locationId)
 ]]></dw:set-payload>
                 </dw:transform-message>
+                <dw:transform-message doc:name="Transform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	quantity: payload[0].quantityInStock when (payload[0] != null)
+		otherwise 0
+}]]></dw:set-payload>
+                </dw:transform-message>
             </when>
             <otherwise>
                 <flow-ref name="getWarehousesAvailability" doc:name="getWarehousesAvailability"/>
@@ -65,7 +83,16 @@ flowVars.partnersAvailability.results filter ($.partnerInfo.partnerId == flowVar
                     <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
-flowVars.warehousesAvailability.warehouses filter ($.availableCount >= inboundProperties.'http.query.params'.quantity and $.warehouseId == flowVars.locationId)]]></dw:set-payload>
+flowVars.warehousesAvailability.warehouses filter ($.warehouseId == flowVars.locationId)]]></dw:set-payload>
+                </dw:transform-message>
+                <dw:transform-message doc:name="Transform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	quantity: payload[0].availableCount when (payload[0] != null)
+		otherwise 0
+}]]></dw:set-payload>
                 </dw:transform-message>
             </otherwise>
         </choice>
