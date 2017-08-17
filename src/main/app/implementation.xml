@@ -100,18 +100,31 @@ flowVars.warehousesAvailability.warehouses filter ($.warehouseId == flowVars.loc
     <flow name="getStoresAvailability">
          <enricher source="#[payload]" target="#[flowVars.storesAvailability]" doc:name="save to var storesAvailability">
             <processor-chain doc:name="Processor Chain">
-            	<http:request config-ref="locations-system-api" path="/productLocator" method="GET" doc:name="GET /storeAvailability">
-                    <http:request-builder>
-                        <http:query-param paramName="productId" value="#[message.inboundProperties.'http.query.params'.productId]"/>
-                        <http:query-param paramName="variantId" value="#[message.inboundProperties.'http.query.params'.variantId]"/>
-                        <http:query-param paramName="quantity" value="#[message.inboundProperties.'http.query.params'.quantity]"/>
-                        <http:query-param paramName="latitude" value="#[message.inboundProperties.'http.query.params'.latitude]"/>
-                        <http:query-param paramName="longitude" value="#[message.inboundProperties.'http.query.params'.longitude]"/>
-                        <http:query-param paramName="radius" value="#[message.inboundProperties.'http.query.params'.radius]"/>
-                        <http:query-param paramName="metric" value="#[message.inboundProperties.'http.query.params'.metric]"/>
+                <choice doc:name="Base location known?">
+                    <when expression="#[message.inboundProperties.'http.query.params'.latitude != null &amp;&amp; message.inboundProperties.'http.query.params'.longitude != null]">
+                        <http:request config-ref="locations-system-api" path="/productLocator" method="GET" doc:name="GET /storeAvailability with coordinates">
+                            <http:request-builder>
+                                <http:query-param paramName="productId" value="#[message.inboundProperties.'http.query.params'.productId]"/>
+                                <http:query-param paramName="variantId" value="#[message.inboundProperties.'http.query.params'.variantId]"/>
+                                <http:query-param paramName="quantity" value="#[message.inboundProperties.'http.query.params'.quantity]"/>
+                                <http:query-param paramName="latitude" value="#[message.inboundProperties.'http.query.params'.latitude]"/>
+                                <http:query-param paramName="longitude" value="#[message.inboundProperties.'http.query.params'.longitude]"/>
+                                <http:query-param paramName="radius" value="#[message.inboundProperties.'http.query.params'.radius]"/>
+                                <http:query-param paramName="metric" value="#[message.inboundProperties.'http.query.params'.metric]"/>
+                            </http:request-builder>
+                        </http:request>
+                    </when>
+                    <otherwise>
+                        <http:request config-ref="locations-system-api" path="/productLocator" method="GET" doc:name="GET /storeAvailability">
+                            <http:request-builder>
+                                <http:query-param paramName="productId" value="#[message.inboundProperties.'http.query.params'.productId]"/>
+                                <http:query-param paramName="variantId" value="#[message.inboundProperties.'http.query.params'.variantId]"/>
+                                <http:query-param paramName="quantity" value="#[message.inboundProperties.'http.query.params'.quantity]"/>
+                            </http:request-builder>
+                        </http:request>
+                    </otherwise>
+                </choice>
 
-                    </http:request-builder>
-                </http:request>
                 <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Logger"/>
                 <json:json-to-object-transformer returnClass="java.util.Map" doc:name="JSON to Object" mimeType="application/java"/>
             </processor-chain>
@@ -192,8 +205,7 @@ payload.locationType]]></dw:set-variable>
 	partnerId: payload.locationId, 
 	productId: payload.productId,
 	variantId: payload.variantId, 
-	quantity: payload.quantity,
-	deliveryMethod:payload.deliveryMethod
+	quantity: payload.quantity
 }]]></dw:set-payload>
                 </dw:transform-message>
                 <http:request config-ref="partners-system-api" path="/reservation" method="POST" doc:name="POST/reservation for Partner">
@@ -212,8 +224,7 @@ payload.locationType]]></dw:set-variable>
 	warehouseId: payload.locationId, 
 	productId: payload.productId,
 	variantId: payload.variantId, 
-	quantity: payload.quantity, 
-	deliveryMethod: payload.deliveryMethod
+	quantity: payload.quantity
 }]]></dw:set-payload>
                 </dw:transform-message>
                 <http:request config-ref="inventory-system-api" path="/reservation" method="POST" doc:name="POST/reservation for Warehouse">
