@@ -88,7 +88,7 @@ Detailed list with examples:
 + http.port=`8888`
 
 ####Locations system API
-locations-system-api.baseUri=`locations.example.com:80/api`
++ locations-system-api.baseUri=`locations.example.com:80/api`
 
 ####Inventory system API
-inventory-system-api.baseUri=`inventory.example.com:80/api`
++ inventory-system-api.baseUri=`inventory.example.com:80/api`

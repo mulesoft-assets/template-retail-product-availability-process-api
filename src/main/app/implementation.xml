@@ -15,7 +15,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         <flow-ref name="getWarehousesAvailability" doc:name="getWarehousesAvailability"/>
         <flow-ref name="getStoresAvailability" doc:name="getStoresAvailability"/>
         <flow-ref name="getPartnersAvailability" doc:name="getPartnersAvailability"/>
-        <logger level="INFO" doc:name="Logger"/>
+
         <dw:transform-message doc:name="Response message">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
@@ -124,8 +124,8 @@ flowVars.warehousesAvailability.warehouses filter ($.warehouseId == flowVars.loc
                         </http:request>
                     </otherwise>
                 </choice>
+                <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Log message"/>
 
-                <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Logger"/>
                 <json:json-to-object-transformer returnClass="java.util.Map" doc:name="JSON to Object" mimeType="application/java"/>
             </processor-chain>
         </enricher>
@@ -140,7 +140,7 @@ flowVars.warehousesAvailability.warehouses filter ($.warehouseId == flowVars.loc
                         <http:query-param paramName="quantity" value="#[message.inboundProperties.'http.query.params'.quantity]"/>
                     </http:request-builder>
                 </http:request>
-                <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Logger"/>
+                <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Log message"/>
                 <json:json-to-object-transformer returnClass="java.util.Map" doc:name="JSON to Object" mimeType="application/java"/>
             </processor-chain>
         </enricher>
@@ -156,7 +156,7 @@ flowVars.warehousesAvailability.warehouses filter ($.warehouseId == flowVars.loc
 
                     </http:request-builder>
                 </http:request>
-                <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Logger"/>
+                <logger message="#[message.payloadAs(java.lang.String)]" level="INFO" doc:name="Log message"/>
                 <json:json-to-object-transformer returnClass="java.util.Map" doc:name="JSON to Object" mimeType="application/java"/>
             </processor-chain>
         </enricher>
