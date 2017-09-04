@@ -85,10 +85,22 @@ Mule Studio provides you with really easy way to deploy your Template directly t
 In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables.
 Detailed list with examples:
 ### Application properties
-+ http.port=`8888`
++ http.port `8888`
 
 ####Locations system API
-+ locations-system-api.baseUri=`locations.example.com:80/api`
++ locations-system-api.baseUri `locations.example.com:80/api`
 
 ####Inventory system API
-+ inventory-system-api.baseUri=`inventory.example.com:80/api`
++ inventory-system-api.baseUri `inventory.example.com:80/api`
+
+####Partner system API
++ partners-system-api.baseUri `partners.example.com:80/api`
+
+###API auto-discovery
++ api.id `api_id_as_in_api_manager`
++ api.name `api_name_as_in_api_manager`
++ api.version `api_version_as_in_api_manager`
+
+###API Platform Organization
++ anypoint.platform.client_id `cloudhub_bussiness_group_client_id`
++ anypoint.platform.client_secret `cloudhub_bussiness_group_client_secret`
