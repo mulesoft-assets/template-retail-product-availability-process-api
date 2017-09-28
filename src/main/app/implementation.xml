@@ -23,7 +23,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 {
 	productId: inboundProperties."http.query.params".productId,
 	variantId: inboundProperties.'http.query.params'.variantId,
-	warehousesAvailability: (flowVars.warehousesAvailability.warehouses filter ($.availableCount >= inboundProperties.'http.query.params'.quantity)),
+	warehousesAvailability: flowVars.warehousesAvailability.warehouses,
 	storesAvailability: flowVars.storesAvailability.results,
 	partnersAvailability: flowVars.partnersAvailability.results
 }]]></dw:set-payload>

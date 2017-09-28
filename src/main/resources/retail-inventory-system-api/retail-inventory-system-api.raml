@@ -1,7 +1,7 @@
 #%RAML 1.0
-title: retail-inventory-system-api
-version: new
-baseUri: http://localhost:8081/api
+baseUri: http://localhost:8081
+version: prd
+title: Retail Inventory System API
 
 traits: 
   productSearch: !include traits/productSearch.raml
@@ -21,9 +21,6 @@ types:
       customerId: string
       quantity: integer
       warehouseId: string
-      deliveryMethod: 
-        type: string
-        enum: [SHIPMENT, PICKUP]
   
   Warehouse:
     type: object
