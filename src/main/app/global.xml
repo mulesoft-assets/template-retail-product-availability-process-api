@@ -15,10 +15,12 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
     <http:listener-config name="process-api-httpListenerConfig" host="0.0.0.0" port="${http.port}" doc:name="HTTP Listener Configuration"/>
     <apikit:config name="process-api-config" raml="process-api.raml" consoleEnabled="true" doc:name="Router" keepRamlBaseUri="false"/>
-    <api-platform-gw:api id="${api.id}" apiName="${api.name}" version="${api.version}" flowRef="process-api-main" doc:name="API Autodiscovery" create="true" />
+	<api-platform-gw:api id="${api.id}" apiName="${api.name}" version="${api.version}" flowRef="process-api-main" doc:name="API Autodiscovery" create="true" />
     <context:property-placeholder location="common.properties, mule.${mule.env}.properties" />
-    <http:request-config name="locations-system-api" 
-    	host="#[new URL('${locations-system-api.baseUri}').getHost()]" port="#[new URL('${locations-system-api.baseUri}').getPort()]" basePath="#[new URL('${locations-system-api.baseUri}').getPath()]" doc:name="HTTP Request Configuration" >
+    <http:request-config name="locations-system-api" doc:name="HTTP Request Configuration" 
+    	host="#[new URL('${locations-system-api.baseUri}').getHost()]" 
+    	port="#[new URL('${locations-system-api.baseUri}').getPort()]" 
+    	basePath="#[new URL('${locations-system-api.baseUri}').getPath()]" >
         <http:raml-api-configuration location="retail-locations-system-api/retail-locations-system-api.raml"/>
     </http:request-config>
     

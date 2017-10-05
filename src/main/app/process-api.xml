@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
-http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
-   
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
 
     <flow name="process-api-main">
         <http:listener config-ref="process-api-httpListenerConfig" path="/api/*" doc:name="HTTP"/>
@@ -19,11 +17,19 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <flow-ref name="getAvailability" doc:name="getAvailability"/>
 
     </flow>
-        <flow name="get:/locations/{locationId}/availability:process-api-config">
+    <flow name="get:/locations/{locationId}/availability:process-api-config">
         <flow-ref name="getAvailabilityForLocation" doc:name="getAvailabilityForLocation"/>
 
     </flow>
-    <flow name="post:/reservation:process-api-config">
+    <flow name="get:/locations/{locationId}/shipping:process-api-config">
+        <flow-ref name="getShipping" doc:name="getShipping"/>
+
+    </flow>
+    <flow name="get:/locations/{locationId}/taxes:process-api-config">
+        <flow-ref name="getTaxes" doc:name="getTaxes"/>
+
+    </flow>
+    <flow name="post:/reservation:application/json:process-api-config">
         <flow-ref name="createReservation" doc:name="createReservation"/>
 
     </flow>

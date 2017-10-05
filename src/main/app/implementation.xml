@@ -36,6 +36,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 %output application/java
 ---
 inboundProperties."http.query.params".locationType]]></dw:set-variable>
+
         </dw:transform-message>
         <choice doc:name="Choice">
             <when expression="#[flowVars.locationType =='STORE']">
@@ -44,56 +45,58 @@ inboundProperties."http.query.params".locationType]]></dw:set-variable>
                     <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
-flowVars.storesAvailability.results filter ($.storeInfo.storeId == flowVars.locationId)
+using(store=flowVars.storesAvailability.results filter ($.storeInfo.storeId == flowVars.locationId)){
+	
+	productId: inboundProperties."http.query.params".productId,
+	variantId: inboundProperties."http.query.params".variantId,
+	locationId: flowVars.locationId,
+	locationType: flowVars.locationType,
+	quantity: store[0].quantityInStock when (store[0] != null) otherwise 0,
+	tax: '${tax}' as :number when (store[0] != null) otherwise 0,
+	shipping: 0 
+}
 ]]></dw:set-payload>
                 </dw:transform-message>
-                <dw:transform-message doc:name="Transform Message">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/json
----
-{
-	quantity: payload[0].quantityInStock when (payload[0] != null)
-		otherwise 0
-}]]></dw:set-payload>
-                </dw:transform-message>
+
             </when>
             <when expression="#[flowVars.locationType =='PARTNER']">
                 <flow-ref name="getPartnersAvailability" doc:name="getPartnersAvailability"/>
-                <dw:transform-message doc:name="Filter Partner">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/json
----
-flowVars.partnersAvailability.results filter ($.partnerInfo.partnerId == flowVars.locationId)
-]]></dw:set-payload>
-                </dw:transform-message>
                 <dw:transform-message doc:name="Transform Message">
                     <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
-{
-	quantity: payload[0].quantityInStock when (payload[0] != null)
-		otherwise 0
-}]]></dw:set-payload>
+using(partner=flowVars.partnersAvailability.results filter ($.partnerInfo.partnerId == flowVars.locationId)){
+	
+	productId: inboundProperties."http.query.params".productId,
+	variantId: inboundProperties."http.query.params".variantId,
+	locationId: flowVars.locationId,
+	locationType: flowVars.locationType,
+	quantity: partner[0].quantityInStock when (partner[0] != null)  otherwise 0,
+	tax: partner[0].tax when (partner[0] != null)  otherwise 0,
+	shipping: partner[0].partnerInfo.shippingPrice when (partner[0] != null)  otherwise 0
+} ]]></dw:set-payload>
                 </dw:transform-message>
+
+
             </when>
             <otherwise>
                 <flow-ref name="getWarehousesAvailability" doc:name="getWarehousesAvailability"/>
                 <dw:transform-message doc:name="Filter Warehouse">
-                    <dw:input-payload/>
                     <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
-flowVars.warehousesAvailability.warehouses filter ($.warehouseId == flowVars.locationId)]]></dw:set-payload>
-                </dw:transform-message>
-                <dw:transform-message doc:name="Transform Message">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/json
----
-{
-	quantity: payload[0].availableCount when (payload[0] != null)
-		otherwise 0
+using(warehouse=flowVars.warehousesAvailability.warehouses filter ($.warehouseId == flowVars.locationId)){
+	
+	productId: inboundProperties."http.query.params".productId,
+	variantId: inboundProperties."http.query.params".variantId,
+	locationId: flowVars.locationId,
+	locationType: flowVars.locationType,
+	quantity: warehouse[0].availableCount when (warehouse[0] != null) otherwise 0, 
+	tax: '${tax}' as :number when (warehouse[0] != null) otherwise 0,
+	shipping:'${shipping}' as :number when (warehouse[0] != null) otherwise 0
 }]]></dw:set-payload>
                 </dw:transform-message>
+
             </otherwise>
         </choice>
     </flow>
@@ -252,6 +255,119 @@ payload.locationType]]></dw:set-variable>
 ---
 201]]></dw:set-property>
         </dw:transform-message>
+
+    </flow>
+       <flow name="getTaxes">
+        <dw:transform-message doc:name="Set payload">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	productId: inboundProperties."http.query.params".productId,
+	variantId: inboundProperties."http.query.params".variantId,
+	locationType: inboundProperties."http.query.params".locationType
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <choice doc:name="locationType?">
+            <when expression="#[payload.locationType == 'PARTNER']">
+                <http:request config-ref="partners-system-api" path="/productSearch" method="GET" doc:name="GET/productSearch">
+                    <http:request-builder>
+                        <http:query-param paramName="quantity" value="0"/>
+                        <http:query-param paramName="productId" value="#[payload.productId]"/>
+                        <http:query-param paramName="variantId" value="#[payload.variantId]"/>
+
+                    </http:request-builder>
+                </http:request>
+                <dw:transform-message doc:name="Transform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+using (partner = payload.results filter ($.partnerInfo.partnerId == flowVars.locationId))
+{
+	tax: partner[0].tax
+}]]></dw:set-payload>
+                </dw:transform-message>
+
+            </when>
+            <otherwise>
+                <dw:transform-message doc:name="Response Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	tax: '${tax}' as :number
+}]]></dw:set-payload>
+                </dw:transform-message>
+            </otherwise>
+        </choice>
+
+    </flow>
+    <flow name="getShipping">
+        <dw:transform-message doc:name="Set payload">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	locationType: inboundProperties."http.query.params".locationType
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <choice doc:name="locationType?">
+            <when expression="#[payload.locationType == 'PARTNER']">
+                <http:request config-ref="partners-system-api" path="/partners/{partnerId}" method="GET" doc:name="GET/partners/{partnerId}">
+                    <http:request-builder>
+                        <http:uri-param paramName="partnerId" value="#[flowVars.locationId]"/>
+
+
+
+		            </http:request-builder>
+		       		<http:success-status-code-validator values="200,404"/>
+		         </http:request>
+		         <choice doc:name="Found?">
+		             <when expression="#[message.inboundProperties.'http.status' == 200]">
+                        <dw:transform-message doc:name="Response message">
+                            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	totalShippingCost: payload.shippingPrice as :number
+}]]></dw:set-payload>
+                        </dw:transform-message>
+
+		            </when>
+		            <otherwise>
+                        <dw:transform-message doc:name="Response message">
+                            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	message: "Resource not found"
+}]]></dw:set-payload>
+                        </dw:transform-message>
+
+		            </otherwise>
+		        </choice>
+            </when>
+            <when expression="#[payload.locationType == 'WAREHOUSE']">
+                <dw:transform-message doc:name="Response message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	shippingPrice: '${shipping}' as :number
+}]]></dw:set-payload>
+                </dw:transform-message>
+            </when>
+            <otherwise>
+                <dw:transform-message doc:name="Response message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	shippingPrice: 0
+}]]></dw:set-payload>
+                </dw:transform-message>
+            </otherwise>
+        </choice>
 
     </flow>
 </mule>
