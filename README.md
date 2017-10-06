@@ -26,6 +26,12 @@ This endpoint will trigger flow getAvailability which obtains availability of pr
 ### GET/locations/{locationId}/availability
 This endpoint will trigger flow getAvailabilityForLocation which obtains availability of product variants based on the locationId and locationType (STORE,  WAREHOUSE, PARTNER). 
 
+### GET/locations/{locationId}/taxes
+This endpoint will trigger flow getTaxes which obtains tax of product variants based on the locationId and locationType (STORE,  WAREHOUSE, PARTNER).
+
+### GET/locations/{locationId}/shipping
+This endpoint will trigger flow getShipping which obtains shipping cost of product variants based on the locationId and locationType (STORE,  WAREHOUSE, PARTNER).
+
 ### POST/reservation
 This endpoint will trigger flow createReservation which reserves variant in store or warehouse.
 

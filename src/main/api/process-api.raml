@@ -116,6 +116,18 @@ types:
       locationType: 
         type: string
         enum: [STORE, WAREHOUSE, PARTNER]
+        
+  Tax:
+    description: |
+      tax value in percentage
+    properties: 
+      totalTax: number
+      
+  Shipping:   
+    description: |
+      shipping value for Warehouse  
+    properties:
+      totalShippingCost: number
   
 /availability:       
   get:
@@ -126,6 +138,24 @@ types:
           application/json:
             type: Availability
             example: !include examples/get_availability_response.raml
+
+
+
+/reservation: 
+  post:
+    body:
+      application/json:
+        type: Reservation 
+        example: !include examples/post_reservation_request.raml
+    responses:
+      201: 
+        body:
+          application/json:
+            example: 
+              {
+              "message": "Product was reserved"   
+              }
+
                     
 /locations:
   /{locationId}: 
@@ -147,17 +177,44 @@ types:
                          }
 
 
-/reservation: 
-  post:
-    body:
-      application/json:
-        type: Reservation 
-        example: !include examples/post_reservation_request.raml
-    responses:
-      201: 
-        body:
-          application/json:
-            example: 
-              {
-              "message": "Product was reserved"   
-              }
+    /shipping:
+        get:
+          is: [ geoSearch, productSearch ]
+          queryParameters:
+            locationType:
+              type: string 
+              enum: [STORE, WAREHOUSE, PARTNER]
+          description: |
+            shipping value for location
+          responses: 
+            200:
+              body: 
+                application/json:
+                  type: Shipping
+                  example: |
+                    {  
+                      "totalShippingCost": 5.00
+                    }              
+    
+    /taxes:
+        get:
+          is: [ geoSearch, productSearch ]
+          queryParameters: 
+            locationType:
+              type: string 
+              enum: [STORE, WAREHOUSE, PARTNER]
+            zipCode?: 
+              type: string
+            
+          description: |
+            tax value in percentage for location
+          responses: 
+            200:
+              body: 
+                application/json:
+                  type: Tax
+                  example: |
+                    {  
+                      "totalTax": 4.26
+                    }
+
