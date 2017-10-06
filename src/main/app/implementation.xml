@@ -9,6 +9,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+
     
     
     <flow name="getAvailability">
@@ -258,6 +259,7 @@ payload.locationType]]></dw:set-variable>
 
     </flow>
        <flow name="getTaxes">
+
         <dw:transform-message doc:name="Set payload">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -267,6 +269,7 @@ payload.locationType]]></dw:set-variable>
 	variantId: inboundProperties."http.query.params".variantId,
 	locationType: inboundProperties."http.query.params".locationType
 }]]></dw:set-payload>
+
         </dw:transform-message>
         <choice doc:name="locationType?">
             <when expression="#[payload.locationType == 'PARTNER']">
@@ -284,7 +287,7 @@ payload.locationType]]></dw:set-variable>
 ---
 using (partner = payload.results filter ($.partnerInfo.partnerId == flowVars.locationId))
 {
-	tax: partner[0].tax
+	totalTax: partner[0].tax
 }]]></dw:set-payload>
                 </dw:transform-message>
 
@@ -295,7 +298,7 @@ using (partner = payload.results filter ($.partnerInfo.partnerId == flowVars.loc
 %output application/json
 ---
 {
-	tax: '${tax}' as :number
+	totalTax: '${tax}' as :number
 }]]></dw:set-payload>
                 </dw:transform-message>
             </otherwise>
@@ -353,7 +356,7 @@ using (partner = payload.results filter ($.partnerInfo.partnerId == flowVars.loc
 %output application/json
 ---
 {
-	shippingPrice: '${shipping}' as :number
+	totalShippingCost: '${shipping}' as :number
 }]]></dw:set-payload>
                 </dw:transform-message>
             </when>
@@ -363,7 +366,7 @@ using (partner = payload.results filter ($.partnerInfo.partnerId == flowVars.loc
 %output application/json
 ---
 {
-	shippingPrice: 0
+	totalShippingCost: 0
 }]]></dw:set-payload>
                 </dw:transform-message>
             </otherwise>
