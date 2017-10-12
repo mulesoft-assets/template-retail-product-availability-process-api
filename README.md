@@ -102,11 +102,18 @@ Detailed list with examples:
 ####Partner system API
 + partners-system-api.baseUri `partners.example.com:80/api`
 
-###API auto-discovery
+####Product system API
++ product-system-api.baseUri `product.example.com:80/api`
+
+####API auto-discovery
 + api.id `api_id_as_in_api_manager`
 + api.name `api_name_as_in_api_manager`
 + api.version `api_version_as_in_api_manager`
 
-###API Platform Organization
+####API Platform Organization
 + anypoint.platform.client_id `cloudhub_bussiness_group_client_id`
 + anypoint.platform.client_secret `cloudhub_bussiness_group_client_secret`
+
+####Tax and Shipping properties
+tax=
+shipping=
