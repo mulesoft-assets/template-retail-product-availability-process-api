@@ -115,5 +115,5 @@ Detailed list with examples:
 + anypoint.platform.client_secret `cloudhub_bussiness_group_client_secret`
 
 ####Tax and Shipping properties
-tax=
-shipping=
+tax=`10.5`
+shipping=`7.5`
