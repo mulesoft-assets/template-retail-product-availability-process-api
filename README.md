@@ -24,7 +24,13 @@ As a Customer I want a service to request information about availability of prod
 This endpoint will trigger flow getAvailability which obtains availability of product variants in stores from Locations System API, partners from Partners System API and warehouse from Inventory System API. 
 
 ### GET/locations/{locationId}/availability
-This endpoint will trigger flow getAvailabilityForLocation which obtains availability of product variants based on the locationId and locationType (STORE,  WAREHOUSE, PARTNER). 
+This endpoint will trigger flow getAvailabilityForLocation which obtains availability, totalTax and totalShipping of variant based on the locationId and locationType (STORE,  WAREHOUSE, PARTNER). 
+
+### GET/locations/{locationId}/taxes
+This endpoint will trigger flow getTaxes which obtains total tax of variant based on the locationId and locationType (STORE,  WAREHOUSE, PARTNER).
+
+### GET/locations/{locationId}/shipping
+This endpoint will trigger flow getShipping which obtains total shipping cost of variant based on the locationId and locationType (STORE,  WAREHOUSE, PARTNER).
 
 ### POST/reservation
 This endpoint will trigger flow createReservation which reserves variant in store or warehouse.
@@ -34,7 +40,7 @@ This endpoint will trigger flow createReservation which reserves variant in stor
 To make this Anypoint Template run, there are certain preconditions that must be considered. **Failling to do so could lead to unexpected behavior of the template.**
 
 ## APIs security considerations <a name="apissecurityconsiderations"/>
-This Experience API is meant to be deployed to CloudHub and managed using the API Platform Manager.
+This Process API is meant to be deployed to CloudHub and managed using the API Platform Manager.
    
 
 # Run it! <a name="runit"/>
