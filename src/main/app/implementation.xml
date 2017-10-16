@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -8,7 +8,8 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 
 
     
@@ -302,20 +303,22 @@ using (partner = payload.results filter ($.partnerInfo.partnerId == flowVars.loc
 
             </when>
             <otherwise>
-                <http:request config-ref="product-system-api" path="/products/{productId}" method="GET" doc:name="GET/products/{productId}">
-                    <http:request-builder>
-                        <http:uri-param paramName="productId" value="#[payload.productId]"/>
-
-                    </http:request-builder>
-                </http:request>
-                <dw:transform-message doc:name="Response Message">
-                    <dw:set-payload><![CDATA[%dw 1.0
+                <ee:cache doc:name="Cache">
+                    <http:request config-ref="product-system-api" path="/products/{productId}" method="GET" doc:name="GET/products/{productId}">
+                        <http:request-builder>
+                            <http:uri-param paramName="productId" value="#[payload.productId]"/>
+                        </http:request-builder>
+                    </http:request>
+                    <dw:transform-message doc:name="Response Message">
+                        <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
 {
 	totalTax: ((round ('${tax}' * payload.price.amount.currencyValue * flowVars.quantity))  /100) as :number
 }]]></dw:set-payload>
-                </dw:transform-message>
+                    </dw:transform-message>
+                </ee:cache>
+
             </otherwise>
         </choice>
 
