@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:retail-product-system-api="http://www.mulesoft.org/schema/mule/retail-product-system-api"
+	xmlns:retail-partners-system-api="http://www.mulesoft.org/schema/mule/retail-partners-system-api"
+	xmlns:retail-inventory-system-api="http://www.mulesoft.org/schema/mule/retail-inventory-system-api"
+	xmlns:retail-locations-system-api="http://www.mulesoft.org/schema/mule/retail-locations-system-api"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/retail-locations-system-api http://www.mulesoft.org/schema/mule/retail-locations-system-api/current/mule-retail-locations-system-api.xsd
+http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mulesoft.org/schema/mule/retail-inventory-system-api/current/mule-retail-inventory-system-api.xsd
+http://www.mulesoft.org/schema/mule/retail-partners-system-api http://www.mulesoft.org/schema/mule/retail-partners-system-api/current/mule-retail-partners-system-api.xsd
+http://www.mulesoft.org/schema/mule/retail-product-system-api http://www.mulesoft.org/schema/mule/retail-product-system-api/current/mule-retail-product-system-api.xsd">
+	<flow name="getAvailability" doc:id="3c5dd92d-bacd-4902-98f4-e967327c9953">
+		<ee:transform doc:name="Prepare params var" doc:id="b2064c3e-9c55-42dd-9963-069d3c0502ee">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="params" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	productId: attributes.queryParams.productId,
+	variantId: attributes.queryParams.variantId,	
+	quantity: attributes.queryParams.quantity,
+	zipCode: attributes.queryParams.zipCode,
+	longitude: attributes.queryParams.longitude,
+	latitude: attributes.queryParams.latitude,
+	radius: attributes.queryParams.zipCode
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="getWarehousesAvailability" doc:id="e05bb753-0df8-48b2-8724-c0cd283004c0"
+			name="getWarehousesAvailability" />
+		<flow-ref doc:name="getStoresAvailability" doc:id="dbca826b-5d1b-4c6b-84d9-378f710f3bfd"
+			name="getStoresAvailability" />
+		<flow-ref doc:name="getPartnersAvailability" doc:id="2b8073de-6ec0-44fc-b957-c9d3ced1132e"
+			name="getPartnersAvailability" />
+		<ee:transform doc:name="Build response"
+			doc:id="5bed8062-97b6-4d88-b669-707d9d596d56">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	productId: vars.params.productId,
+	variantId: vars.params.variantId,
+	warehousesAvailability: vars.warehousesAvailability.warehouses,
+	storesAvailability: vars.storesAvailability.results,
+	partnersAvailability: vars.partnersAvailability.results
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getStoresAvailability" doc:id="ecde6d6c-c53b-48bf-91fb-ba5617d42e08">
+		<retail-locations-system-api:get-product-locators
+			doc:name="Get store availability" doc:id="03bb2aea-0bcf-4ead-b0f7-bc5b1ec2b120"
+			product-id="#[vars.params.productId]" variant-id="#[vars.params.variantId]"
+			zipcode="#[vars.params.zipCode]" latitude="#[vars.params.latitude]"
+			longitude="#[vars.params.longitude]" radius="#[vars.params.radius]"
+			metric="#[vars.params.metric]" quantity="#[vars.params.quantity]"
+			target="storesAvailability" config-ref="Retail_Locations_System_API_Config" />
+	</flow>
+	<flow name="getWarehousesAvailability" doc:id="dc4549f2-11f3-42e0-bcb2-bbbbcc4f7f09">
+		<retail-inventory-system-api:get-availabilities
+			doc:name="Get warehouses availability" doc:id="58d5aa6e-8137-462a-8910-a9b50df5dce6"
+			config-ref="Retail_Inventory_System_API_Config" product-id="#[vars.params.productId]"
+			variant-id="#[vars.params.variantId]" target="warehousesAvailability"
+			quantity="#[vars.params.quantity]" />
+	</flow>
+	<flow name="getPartnersAvailability" doc:id="9101dec0-6842-474b-9c69-67e7a1fc4d65">
+		<retail-partners-system-api:get-product-searches
+			doc:name="Get partners availability" doc:id="2e91a3f4-9775-48c5-8d40-4431852c4354"
+			config-ref="Retail_Partners_System_API_Config" product-id="#[vars.params.productId]"
+			variant-id="#[vars.params.variantId]" target="partnersAvailability"
+			quantity="#[vars.params.quantity]" />
+	</flow>
+	<flow name="getAvailabilityForLocation" doc:id="f26f90a7-d026-406f-98ff-8a07fe5cd34e">
+		<ee:transform doc:name="Prepare params var"
+			doc:id="175e4702-edc8-4e0f-a5df-b525558c7132">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="params"><![CDATA[%dw 2.0
+output application/java
+---
+{
+	locationType: attributes.queryParams.locationType,
+	productId: attributes.queryParams.productId,
+	variantId: attributes.queryParams.variantId,
+	locationId: attributes.uriParams.locationId,	
+	quantity: attributes.queryParams.quantity,
+	price: attributes.queryParams.price
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Choice by target location type" doc:id="8a9f08ba-1a31-4053-bf67-cba882bd08d5">
+			<when expression="#[attributes.queryParams.locationType == 'STORE']">
+				<flow-ref doc:name="getStoresAvailability" doc:id="67fef6ff-c37e-4c2d-9fff-a7803088f179"
+					name="getStoresAvailability" />
+				<ee:transform doc:name="Filter store"
+					doc:id="c68df0c2-4529-4eef-a537-a7668e7870ce">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+using(store = vars.storesAvailability.results filter ($.storeInfo.storeId == vars.params.locationId)){
+	productId: vars.params.productId,
+	variantId: vars.params.variantId,
+	locationId: vars.params.locationId,
+	locationType: vars.params.locationType,
+	quantityInStock: if (store[0] != null) store[0].quantityInStock else 0,
+	tax: if (store[0] != null) ((round (p('tax') * vars.params.quantity * vars.params.price)) /100 ) as Number else null,
+	shipping: 0 
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression="#[attributes.queryParams.locationType == 'PARTNER']">
+				<flow-ref doc:name="getPartnersAvailability" doc:id="458f2dbc-9684-42b4-bd1f-7c7a7dac26a4"
+					name="getPartnersAvailability" />
+				<ee:transform doc:name="Filter partner"
+					doc:id="8f2b02cc-acfe-4097-bdf4-ab0d55489598">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+using(partner = vars.partnersAvailability.results filter ($.partnerInfo.partnerId == vars.params.locationId)){
+	productId: vars.params.productId,
+	variantId: vars.params.variantId,
+	locationId: vars.params.locationId,
+	locationType: vars.params.locationType,
+	quantityInStock: if (partner[0] != null) partner[0].quantityInStock else 0,
+	tax: if (partner[0] != null) (partner[0].tax * vars.params.quantity) else 0,
+	shipping: if (partner[0] != null) partner[0].partnerInfo.shippingPrice else 0
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<flow-ref doc:name="getWarehousesAvailability" doc:id="949e266b-8fa8-4546-a644-bb14bce349bf"
+					name="getWarehousesAvailability" />
+				<ee:transform doc:name="Filter warehouse"
+					doc:id="f4c18b3c-7f89-494a-9ef5-50054165e13f">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+using(warehouse = vars.warehousesAvailability.warehouses filter ($.warehouseId == vars.params.locationId)){
+	productId: vars.params.productId,
+	variantId: vars.params.variantId,
+	locationId: vars.params.locationId,
+	locationType: vars.params.locationType,
+	quantityInStock: if (warehouse[0] != null) warehouse[0].availableCount else 0, 
+	tax: if (warehouse[0] != null) ((round (p('tax') * vars.params.quantity * vars.params.price)) / 100) as Number else 0,
+	shipping: if (warehouse[0] != null) p('shipping') as Number else 0
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="getShipping" doc:id="c1364d77-06d7-4eb5-8543-b5bdc3768075">
+		<choice doc:name="Choice by target location type" doc:id="946a7a85-a78d-4755-9a45-846cfaa0ca3f">
+			<when expression="#[attributes.queryParams.locationType == 'PARTNER']">
+				<retail-partners-system-api:get-partner-by-partner-id
+					doc:name="Get partner by partner id" doc:id="5234743a-c13a-410e-95c7-4fac8f307f68"
+					config-ref="Retail_Partners_System_API_Config" partner-id="2" />
+				<ee:transform doc:name="Build response"
+					doc:id="518bc896-7e9f-4b5d-a2ea-78baea4a9f57">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (attributes.statusCode == 200) {
+	totalShippingCost: payload.shippingPrice as Number
+} else {
+	message: "Resource not found"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression="#[attributes.queryParams.locationType == 'WAREHOUSE']">
+				<ee:transform doc:name="Build response with total shipping from properties"
+					doc:id="d924111c-0740-4343-99c0-b8a22101432b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	totalShippingCost: p("shipping") as Number
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Default total shipping = 0"
+					doc:id="d35ccc76-3a1a-4f11-885e-c67a988533ce">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	totalShippingCost: 0
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="getTaxes" doc:id="3b76b97b-48ad-4fe9-9299-b11e3fe417fd">
+		<ee:transform doc:name="Prepare params var"
+			doc:id="2e991a71-4492-4960-b298-eba576a881a9">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="params"><![CDATA[%dw 2.0
+output application/json
+---
+{
+	quantity: attributes.queryParams.quantity,
+	locationId: attributes.uriParams.locationId
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Choice by target location type" doc:id="c9aeed17-504e-4024-a554-2b06ea1c6c0b">
+			<when expression="#[attributes.queryParams.locationType == 'PARTNER']">
+				<retail-partners-system-api:get-product-searches
+					doc:name="Get product by Id and variantId" doc:id="6f6ae420-08b1-4885-9ede-aa2c02ff2e47"
+					product-id="#[attributes.queryParams.productId]" variant-id="#[attributes.queryParams.variantId]"
+					config-ref="Retail_Partners_System_API_Config" quantity="#[attributes.queryParams.quantity]" />
+				<ee:transform doc:name="Get total tax from response"
+					doc:id="dc7b8180-3ca0-42c7-9ca8-59a5fa7944bd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+using (partner = payload.results filter ($.partnerInfo.partnerId == vars.params.locationId))
+{
+	totalTax: if (partner[0] != null) (partner[0].tax * vars.params.quantity) as Number else 0
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<retail-product-system-api:get-product-by-product-id
+					doc:name="Get product by product id" doc:id="ffc2e825-2a64-4b08-96ef-908e883cbef9"
+					config-ref="Retail_Product_System_API_Config" product-id="#[attributes.queryParams.productId]" />
+				<ee:transform doc:name="Get total tax from response"
+					doc:id="8c03aaa7-30ca-4f7a-9ddb-b83521370dd8">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	totalTax: ((round (p('tax') * payload.price.amount.currencyValue * vars.params.quantity)) / 100) as Number
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="createReservation" doc:id="14d84ff1-fb2e-49ab-b178-c2a86abf5ae2">
+		<choice doc:name="Choice by target location type" doc:id="6ee98e45-9af3-4281-9cbf-0b051ca11b5d">
+			<when expression='#[payload.locationType == "STORE"]'>
+				<retail-locations-system-api:create-reservation
+					doc:name="Create reservation in store" doc:id="e40c1436-1e3c-4f64-a11b-7f52dfccf41a"
+					config-ref="Retail_Locations_System_API_Config">
+					<retail-locations-system-api:create-reservation-request-data><![CDATA[#[{
+	customerId: payload.customerId,
+	storeId: payload.locationId, 
+	productId: payload.productId,
+	variantId: payload.variantId, 
+	quantity: payload.quantity
+}]]]></retail-locations-system-api:create-reservation-request-data>
+				</retail-locations-system-api:create-reservation>
+			</when>
+			<when expression='#[payload.locationType == "PARTNER"]'>
+				<retail-partners-system-api:create-reservation
+					doc:name="Create reservation in partners warehouse" doc:id="d706ccf3-adca-4c11-b6f3-0f6d9d4fd68e"
+					config-ref="Retail_Partners_System_API_Config">
+					<retail-partners-system-api:create-reservation-request-data><![CDATA[#[{
+	customerId: payload.customerId,
+	partnerId: payload.locationId, 
+	productId: payload.productId,
+	variantId: payload.variantId, 
+	quantity: payload.quantity
+}]]]></retail-partners-system-api:create-reservation-request-data>
+				</retail-partners-system-api:create-reservation>
+			</when>
+			<when expression='#[payload.locationType == "WAREHOUSE"]'>
+				<retail-inventory-system-api:create-reservation
+					doc:name="Create reservation in warehouse" doc:id="210fd0c6-ec22-4a5c-9193-0863931c8cbf"
+					config-ref="Retail_Inventory_System_API_Config">
+					<retail-inventory-system-api:create-reservation-request-data><![CDATA[#[{
+	customerId: payload.customerId,
+	warehouseId: payload.locationId, 
+	productId: payload.productId,
+	variantId: payload.variantId, 
+	quantity: payload.quantity
+}]]]></retail-inventory-system-api:create-reservation-request-data>
+				</retail-inventory-system-api:create-reservation>
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Log unsupported location type"
+					doc:id="02e0a2dd-d5d7-4e83-88b2-a4f09652b104" message="Unsupported location type: #[payload.locationType]" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Build response and set http status to 201"
+			doc:id="33938be6-d5cb-46ca-a969-5776fefb740f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "Product has been reserved!"
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="httpStatus"><![CDATA[%dw 2.0
+output application/java
+---
+201]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+</mule>
