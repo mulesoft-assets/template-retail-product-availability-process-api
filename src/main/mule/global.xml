@@ -1,16 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:retail-inventory-system-api="http://www.mulesoft.org/schema/mule/retail-inventory-system-api"
+<mule xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:retail-inventory-system-api="http://www.mulesoft.org/schema/mule/retail-inventory-system-api"
 	xmlns:retail-partners-system-api="http://www.mulesoft.org/schema/mule/retail-partners-system-api"
 	xmlns:retail-product-system-api="http://www.mulesoft.org/schema/mule/retail-product-system-api"
 	xmlns:retail-locations-system-api="http://www.mulesoft.org/schema/mule/retail-locations-system-api"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/retail-locations-system-api http://www.mulesoft.org/schema/mule/retail-locations-system-api/current/mule-retail-locations-system-api.xsd
 http://www.mulesoft.org/schema/mule/retail-product-system-api http://www.mulesoft.org/schema/mule/retail-product-system-api/current/mule-retail-product-system-api.xsd
 http://www.mulesoft.org/schema/mule/retail-partners-system-api http://www.mulesoft.org/schema/mule/retail-partners-system-api/current/mule-retail-partners-system-api.xsd
 http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mulesoft.org/schema/mule/retail-inventory-system-api/current/mule-retail-inventory-system-api.xsd">
+	
+	<http:listener-config name="retail_product_availability_process_api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
+    </http:listener-config>
+    
+    <apikit:config name="retail_product_availability_process_api-config" raml="retail_product_availability_process_api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	
 	<retail-inventory-system-api:config
 		name="Retail_Inventory_System_API_Config" 
 		doc:name="Retail_Inventory_System_API Config"
@@ -47,6 +58,8 @@ http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mules
 		property_basePath="${product-system-api.basePath}" 
 		property_protocol="${product-system-api.protocol}" 
 	/>
+	
+	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="mule-artifact.properties"/>
 	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="mule.${mule.env}.properties"/>
 	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="common.properties"/>
 </mule>

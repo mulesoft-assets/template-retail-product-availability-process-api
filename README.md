@@ -37,7 +37,7 @@ This endpoint will trigger flow createReservation which reserves variant in stor
 
 # Considerations <a name="considerations"/>
 
-To make this Anypoint Template run, there are certain preconditions that must be considered. **Failling to do so could lead to unexpected behavior of the template.**
+To make this Anypoint Template run, there are certain preconditions that must be considered. **Failing to do so could lead to unexpected behavior of the template.**
 
 ## APIs security considerations <a name="apissecurityconsiderations"/>
 This Process API is meant to be deployed to CloudHub and managed using the API Platform Manager.
@@ -116,5 +116,5 @@ Detailed list with examples:
 + product-system-api.protocol `HTTPS`
 
 #### Tax and Shipping properties
-tax=`10.5`
-shipping=`7.5`
++ tax=`10.5`
++ shipping=`7.5`

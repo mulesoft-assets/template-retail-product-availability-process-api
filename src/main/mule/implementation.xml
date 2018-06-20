@@ -97,7 +97,7 @@ output application/java
 			</ee:variables>
 		</ee:transform>
 		<choice doc:name="Choice by target location type" doc:id="8a9f08ba-1a31-4053-bf67-cba882bd08d5">
-			<when expression="#[attributes.queryParams.locationType == 'STORE']">
+			<when expression="#[vars.params.locationType == 'STORE']">
 				<flow-ref doc:name="getStoresAvailability" doc:id="67fef6ff-c37e-4c2d-9fff-a7803088f179"
 					name="getStoresAvailability" />
 				<ee:transform doc:name="Filter store"
@@ -118,7 +118,7 @@ using(store = vars.storesAvailability.results filter ($.storeInfo.storeId == var
 					</ee:message>
 				</ee:transform>
 			</when>
-			<when expression="#[attributes.queryParams.locationType == 'PARTNER']">
+			<when expression="#[vars.params.locationType == 'PARTNER']">
 				<flow-ref doc:name="getPartnersAvailability" doc:id="458f2dbc-9684-42b4-bd1f-7c7a7dac26a4"
 					name="getPartnersAvailability" />
 				<ee:transform doc:name="Filter partner"
@@ -221,16 +221,19 @@ output application/json
 ---
 {
 	quantity: attributes.queryParams.quantity,
-	locationId: attributes.uriParams.locationId
+	locationId: attributes.uriParams.locationId,
+	locationType: attributes.queryParams.locationType,
+	productId: attributes.queryParams.productId,
+	variantId: attributes.queryParams.variantId
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<choice doc:name="Choice by target location type" doc:id="c9aeed17-504e-4024-a554-2b06ea1c6c0b">
-			<when expression="#[attributes.queryParams.locationType == 'PARTNER']">
+			<when expression="#[vars.params.locationType == 'PARTNER']">
 				<retail-partners-system-api:get-product-searches
 					doc:name="Get product by Id and variantId" doc:id="6f6ae420-08b1-4885-9ede-aa2c02ff2e47"
-					product-id="#[attributes.queryParams.productId]" variant-id="#[attributes.queryParams.variantId]"
-					config-ref="Retail_Partners_System_API_Config" quantity="#[attributes.queryParams.quantity]" />
+					product-id="#[vars.params.productId]" variant-id="#[vars.params.variantId]"
+					config-ref="Retail_Partners_System_API_Config" quantity="#[vars.params.quantity]" />
 				<ee:transform doc:name="Get total tax from response"
 					doc:id="dc7b8180-3ca0-42c7-9ca8-59a5fa7944bd">
 					<ee:message>
@@ -248,7 +251,7 @@ using (partner = payload.results filter ($.partnerInfo.partnerId == vars.params.
 			<otherwise>
 				<retail-product-system-api:get-product-by-product-id
 					doc:name="Get product by product id" doc:id="ffc2e825-2a64-4b08-96ef-908e883cbef9"
-					config-ref="Retail_Product_System_API_Config" product-id="#[attributes.queryParams.productId]" />
+					config-ref="Retail_Product_System_API_Config" product-id="#[vars.params.productId]" />
 				<ee:transform doc:name="Get total tax from response"
 					doc:id="8c03aaa7-30ca-4f7a-9ddb-b83521370dd8">
 					<ee:message>
