@@ -1,0 +1,36 @@
+{
+  "configs": [
+    "implementation.xml",
+    "global.xml",
+    "process_api.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "template-retail-product-availability-process-api",
+  "minMuleVersion": "4.1.1",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedResources": [
+        "api/.gitignore",
+        "api/examples/product-availability-for-location-response.raml",
+        "api/examples/product-availability-response.raml",
+        "api/examples/product-reservation-request.raml",
+        "api/examples/shipping-cost-response.raml",
+        "api/examples/total-tax-response.raml",
+        "api/exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_common/1.0.8/retail_common.raml",
+        "api/exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_geosearch/1.0.1/retail_geosearch.raml",
+        "api/exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_inventory/1.0.6/retail_inventory.raml",
+        "api/exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_partner/1.0.3/retail_partner.raml",
+        "api/exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_store/1.0.4/retail_store.raml",
+        "api/retail_product_availability_process_api.raml",
+        "api/traits/productSearch.raml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}
