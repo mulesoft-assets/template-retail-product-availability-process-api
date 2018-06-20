@@ -60,10 +60,8 @@ First thing to know if you are a newcomer to Mule is where to get the tools.
 ### Importing an Anypoint Template into Studio
 Mule Studio offers several ways to import a project into the workspace, for instance: 
 
-+ Anypoint Studio generated Deployable Archive (.zip)
-+ Anypoint Studio Project from External Location
-+ Maven-based Mule Project from pom.xml
-+ Mule ESB Configuration XML from External Location
++ Anypoint Studio Project from File System
++ Packaged mule application (.jar)
 
 You can find a detailed description on how to do so in this [Documentation Page](http://www.mulesoft.org/documentation/display/current/Importing+and+Exporting+in+Studio).
 
@@ -78,7 +76,7 @@ Once you have imported you Anypoint Template into Anypoint Studio you need to fo
 + Click on  `"Mule Application"`
 
 ### Running on Mule ESB stand alone <a name="runonmuleesbstandalone"/>
-Complete all properties in one of the property files, for example in [mule.prod.properties](../master/src/main/resources/mule.prod.properties) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`. 
+Complete all properties in one of the property files, for example in [mule.prod.properties](../master/src/mule/resources/mule.prod.properties) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`. 
 
 ## Running on CloudHub <a name="runoncloudhub"/>
 While [creating your application on CloudHub](http://www.mulesoft.org/documentation/display/current/Hello+World+on+CloudHub) (Or you can do it later as a next step), you need to go to `"Manage Application"` > `"Properties"` to set all environment variables detailed in **Properties to be configured**.
@@ -93,27 +91,30 @@ Detailed list with examples:
 ### Application properties
 + http.port `8888`
 
-####Locations system API
-+ locations-system-api.baseUri `locations.example.com:80/api`
+#### Locations system API
++ locations-system-api.host `locations.mulesoft.com`
++ locations-system-api.port `443`
++ locations-system-api.basePath `/path/api`
++ locations-system-api.protocol `HTTPS`
 
-####Inventory system API
-+ inventory-system-api.baseUri `inventory.example.com:80/api`
+#### Inventory system API
++ inventory-system-api.host `inventory.mulesoft.com`
++ inventory-system-api.port `443`
++ inventory-system-api.basePath `/path`
++ inventory-system-api.protocol `HTTPS`
 
-####Partner system API
-+ partners-system-api.baseUri `partners.example.com:80/api`
+#### Partner system API
++ partners-system-api.host `partners.mulesoft.com`
++ partners-system-api.port `443`
++ partners-system-api.basePath `/path`
++ partners-system-api.protocol `HTTPS`
 
-####Product system API
-+ product-system-api.baseUri `product.example.com:80/api`
+#### Product system API
++ product-system-api.host `product.mulesoft.com`
++ product-system-api.port `443`
++ product-system-api.basePath `/path`
++ product-system-api.protocol `HTTPS`
 
-####API auto-discovery
-+ api.id `api_id_as_in_api_manager`
-+ api.name `api_name_as_in_api_manager`
-+ api.version `api_version_as_in_api_manager`
-
-####API Platform Organization
-+ anypoint.platform.client_id `cloudhub_bussiness_group_client_id`
-+ anypoint.platform.client_secret `cloudhub_bussiness_group_client_secret`
-
-####Tax and Shipping properties
+#### Tax and Shipping properties
 tax=`10.5`
 shipping=`7.5`
