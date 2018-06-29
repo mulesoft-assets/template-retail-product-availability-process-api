@@ -167,7 +167,7 @@ using(warehouse = vars.warehousesAvailability.warehouses filter ($.warehouseId =
 			<when expression="#[attributes.queryParams.locationType == 'PARTNER']">
 				<retail-partners-system-api:get-partner-by-partner-id
 					doc:name="Get partner by partner id" doc:id="5234743a-c13a-410e-95c7-4fac8f307f68"
-					config-ref="Retail_Partners_System_API_Config" partner-id="2" />
+					config-ref="Retail_Partners_System_API_Config" partner-id="#[attributes.uriParams.locationId]" />
 				<ee:transform doc:name="Build response"
 					doc:id="518bc896-7e9f-4b5d-a2ea-78baea4a9f57">
 					<ee:message>
