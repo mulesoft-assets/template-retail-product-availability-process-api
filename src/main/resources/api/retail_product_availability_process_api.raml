@@ -1,55 +1,88 @@
 #%RAML 1.0
+baseUri: https://mocksvc.mulesoft.com/mocks/e2924388-1d34-493d-b56e-bcd0ac6bc5ab # 
 title: Retail_Product_Availability_Process_API
 version: v2.0
 
 uses: 
-  inventory: /exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_inventory/1.0.6/retail_inventory.raml
+  inventory: /exchange_modules/org.mule.templates/retail-inventory/1.0.0/retail_inventory.raml
 
 traits: 
-  geoSearch: !include /exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_geosearch/1.0.1/retail_geosearch.raml
+  geoSearch: !include /exchange_modules/org.mule.templates/retail-geosearch/1.0.0/retail_geosearch.raml
   productSearch: !include traits/productSearch.raml
 
 types: 
 
   AvailabilityForLocation: 
     type: object
+    description: availability of product for location
     properties: 
-      productId: string
-      variantId: string
-      locationId: string
+      productId: 
+        type: string
+        description: identifier of product
+      variantId: 
+        type: string
+        description: identifier of product variant 
+      locationId: 
+        type: string
+        description: identifier of location
       locationType: 
         type: string
         enum: [STORE, WAREHOUSE, PARTNER]
-      quantityInStock: integer 
-      tax:  number
-      shipping: number
-        
+        description: type of location
+      quantityInStock: 
+        type: integer
+        description: count of products in stock 
+      tax:  
+        type: number
+        description: tax price for product
+      shipping: 
+        type: number
+        description: shipping price 
+
+
   ReservationRequest: 
     type: object
+    description: reservation of product
     properties:
-      productId: string
-      variantId: string
-      customerId: string
-      quantity: integer
-      locationId: string
+      productId: 
+        type: string
+        description: identifier of product
+      variantId: 
+        type: string
+        description: identifier of product variant 
+      customerId: 
+        type: string
+        description: identifier of customer 
+      quantity: 
+        type: integer
+        description: count of reserved product
+      locationId: 
+        type: string
+        description: identifier of location
       locationType: 
         type: string
         enum: [STORE, WAREHOUSE, PARTNER]
+        description: type of location
         
   Tax:
     description: |
-      tax value in percentage
+      tax value 
     properties: 
-      totalTax: number
+      totalTax: 
+        type: number
+        description: total tax
       
   Shipping:   
     description: |
-      shipping value for Warehouse  
+      shipping value for warehouse  
     properties:
-      totalShippingCost: number
+      totalShippingCost: 
+        type: number
+        description: total shipping value 
   
 /availability:       
   get:
+    displayName: Retrieve availability
     is: [ geoSearch, productSearch ]
     responses:
       200: 
@@ -62,6 +95,7 @@ types:
 
 /reservation: 
   post:
+    displayName: Create reservation
     body:
       application/json:
         type: ReservationRequest 
@@ -80,6 +114,7 @@ types:
   /{locationId}: 
     /availability:       
         get:
+          displayName: Retrieve availability for location
           is: [  geoSearch, productSearch ]
           queryParameters: 
               locationType:
@@ -99,6 +134,7 @@ types:
 
     /shipping:
         get:
+          displayName: Retrieve shipping price 
           is: [ geoSearch, productSearch ]
           queryParameters:
             locationType:
@@ -115,6 +151,7 @@ types:
     
     /taxes:
         get:
+          displayName: Retrieve tax price
           is: [ geoSearch, productSearch ]
           queryParameters: 
             locationType:

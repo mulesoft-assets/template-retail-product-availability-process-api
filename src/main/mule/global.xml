@@ -16,6 +16,8 @@ http://www.mulesoft.org/schema/mule/retail-product-system-api http://www.mulesof
 http://www.mulesoft.org/schema/mule/retail-partners-system-api http://www.mulesoft.org/schema/mule/retail-partners-system-api/current/mule-retail-partners-system-api.xsd
 http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mulesoft.org/schema/mule/retail-inventory-system-api/current/mule-retail-inventory-system-api.xsd">
 	
+	<global-property doc:name="Global Property" doc:id="14ae623a-bfbf-4598-9094-0d57ecf11851" name="mule.env" value="dev" />
+	
 	<http:listener-config name="retail_product_availability_process_api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="${http.port}" />
     </http:listener-config>
@@ -58,8 +60,6 @@ http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mules
 		property_basePath="${product-system-api.basePath}" 
 		property_protocol="${product-system-api.protocol}" 
 	/>
-	
-	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="mule-artifact.properties"/>
 	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="mule.${mule.env}.properties"/>
 	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="common.properties"/>
 </mule>
