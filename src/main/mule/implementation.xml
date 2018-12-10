@@ -55,7 +55,7 @@ output application/json
 		</ee:transform>
 	</flow>
 	<flow name="getStoresAvailability" doc:id="ecde6d6c-c53b-48bf-91fb-ba5617d42e08">
-		<retail-locations-system-api:get-product-locators
+		<retail-locations-system-api:locate-stores-with-product
 			doc:name="Get store availability" doc:id="03bb2aea-0bcf-4ead-b0f7-bc5b1ec2b120"
 			product-id="#[vars.params.productId]" variant-id="#[vars.params.variantId]"
 			zipcode="#[vars.params.zipCode]" latitude="#[vars.params.latitude]"
@@ -64,14 +64,14 @@ output application/json
 			target="storesAvailability" config-ref="Retail_Locations_System_API_Config" />
 	</flow>
 	<flow name="getWarehousesAvailability" doc:id="dc4549f2-11f3-42e0-bcb2-bbbbcc4f7f09">
-		<retail-inventory-system-api:get-availabilities
+		<retail-inventory-system-api:retrieve-availability
 			doc:name="Get warehouses availability" doc:id="58d5aa6e-8137-462a-8910-a9b50df5dce6"
 			config-ref="Retail_Inventory_System_API_Config" product-id="#[vars.params.productId]"
 			variant-id="#[vars.params.variantId]" target="warehousesAvailability"
 			quantity="#[vars.params.quantity]" />
 	</flow>
 	<flow name="getPartnersAvailability" doc:id="9101dec0-6842-474b-9c69-67e7a1fc4d65">
-		<retail-partners-system-api:get-product-searches
+		<retail-partners-system-api:search-product
 			doc:name="Get partners availability" doc:id="2e91a3f4-9775-48c5-8d40-4431852c4354"
 			config-ref="Retail_Partners_System_API_Config" product-id="#[vars.params.productId]"
 			variant-id="#[vars.params.variantId]" target="partnersAvailability"
@@ -165,7 +165,7 @@ using(warehouse = vars.warehousesAvailability.warehouses filter ($.warehouseId =
 	<flow name="getShipping" doc:id="c1364d77-06d7-4eb5-8543-b5bdc3768075">
 		<choice doc:name="Choice by target location type" doc:id="946a7a85-a78d-4755-9a45-846cfaa0ca3f">
 			<when expression="#[attributes.queryParams.locationType == 'PARTNER']">
-				<retail-partners-system-api:get-partner-by-partner-id
+				<retail-partners-system-api:retrieve-partner-info
 					doc:name="Get partner by partner id" doc:id="5234743a-c13a-410e-95c7-4fac8f307f68"
 					config-ref="Retail_Partners_System_API_Config" partner-id="#[attributes.uriParams.locationId]" />
 				<ee:transform doc:name="Build response"
@@ -230,7 +230,7 @@ output application/json
 		</ee:transform>
 		<choice doc:name="Choice by target location type" doc:id="c9aeed17-504e-4024-a554-2b06ea1c6c0b">
 			<when expression="#[vars.params.locationType == 'PARTNER']">
-				<retail-partners-system-api:get-product-searches
+				<retail-partners-system-api:search-product
 					doc:name="Get product by Id and variantId" doc:id="6f6ae420-08b1-4885-9ede-aa2c02ff2e47"
 					product-id="#[vars.params.productId]" variant-id="#[vars.params.variantId]"
 					config-ref="Retail_Partners_System_API_Config" quantity="#[vars.params.quantity]" />
@@ -249,7 +249,7 @@ using (partner = payload.results filter ($.partnerInfo.partnerId == vars.params.
 				</ee:transform>
 			</when>
 			<otherwise>
-				<retail-product-system-api:get-product-by-product-id
+				<retail-product-system-api:retrieve-product
 					doc:name="Get product by product id" doc:id="ffc2e825-2a64-4b08-96ef-908e883cbef9"
 					config-ref="Retail_Product_System_API_Config" product-id="#[vars.params.productId]" />
 				<ee:transform doc:name="Get total tax from response"
@@ -269,17 +269,17 @@ output application/json
 	<flow name="createReservation" doc:id="14d84ff1-fb2e-49ab-b178-c2a86abf5ae2">
 		<choice doc:name="Choice by target location type" doc:id="6ee98e45-9af3-4281-9cbf-0b051ca11b5d">
 			<when expression='#[payload.locationType == "STORE"]'>
-				<retail-locations-system-api:create-reservation
+				<retail-locations-system-api:reserve-product-in-store
 					doc:name="Create reservation in store" doc:id="e40c1436-1e3c-4f64-a11b-7f52dfccf41a"
 					config-ref="Retail_Locations_System_API_Config">
-					<retail-locations-system-api:create-reservation-request-data><![CDATA[#[{
+					<retail-locations-system-api:reserve-product-in-store-request-data><![CDATA[#[{
 	customerId: payload.customerId,
 	storeId: payload.locationId, 
 	productId: payload.productId,
 	variantId: payload.variantId, 
 	quantity: payload.quantity
-}]]]></retail-locations-system-api:create-reservation-request-data>
-				</retail-locations-system-api:create-reservation>
+}]]]></retail-locations-system-api:reserve-product-in-store-request-data>
+				</retail-locations-system-api:reserve-product-in-store>
 			</when>
 			<when expression='#[payload.locationType == "PARTNER"]'>
 				<retail-partners-system-api:create-reservation
