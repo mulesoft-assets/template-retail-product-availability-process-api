@@ -1,14 +1,14 @@
 #%RAML 1.0
-baseUri: https://mocksvc.mulesoft.com/mocks/e2924388-1d34-493d-b56e-bcd0ac6bc5ab # 
 title: Retail_Product_Availability_Process_API
 version: v2.0
+baseUri: http://localhost:8081/api
 
 uses: 
-  inventory: /exchange_modules/org.mule.templates/retail-inventory/1.0.0/retail_inventory.raml
+  inventory: exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_inventory/1.0.8/retail_inventory.raml
 
 traits: 
-  geoSearch: !include /exchange_modules/org.mule.templates/retail-geosearch/1.0.0/retail_geosearch.raml
-  productSearch: !include traits/productSearch.raml
+  geoSearch: !include exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_geosearch/1.0.1/retail_geosearch.raml
+  productSearch: !include traits/productSearch.raml 
 
 types: 
 
@@ -89,7 +89,7 @@ types:
         body: 
           application/json:
             type: inventory.Availability
-            example: !include examples/product-availability-response.raml
+            example: !include examples/product-availability-response.json
 
 
 
@@ -99,7 +99,7 @@ types:
     body:
       application/json:
         type: ReservationRequest 
-        example: !include examples/product-reservation-request.raml
+        example: !include examples/product-reservation-request.json
     responses:
       201: 
         body:
@@ -129,8 +129,7 @@ types:
               body: 
                 application/json:
                   type: AvailabilityForLocation
-                  example: !include examples/product-availability-for-location-response.raml
-
+                  example: !include examples/product_availability_for_location_response.json
 
     /shipping:
         get:
@@ -147,7 +146,7 @@ types:
               body: 
                 application/json:
                   type: Shipping
-                  example: !include examples/shipping-cost-response.raml            
+                  example: !include examples/shipping-cost-response.json            
     
     /taxes:
         get:
@@ -166,5 +165,5 @@ types:
               body: 
                 application/json:
                   type: Tax
-                  example: !include examples/total-tax-response.raml
+                  example: !include examples/total-tax-response.json
 
