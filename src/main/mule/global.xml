@@ -17,12 +17,14 @@ http://www.mulesoft.org/schema/mule/retail-partners-system-api http://www.muleso
 http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mulesoft.org/schema/mule/retail-inventory-system-api/current/mule-retail-inventory-system-api.xsd">
 	
 	<global-property doc:name="Global Property" doc:id="14ae623a-bfbf-4598-9094-0d57ecf11851" name="mule.env" value="dev" />
+	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="mule.${mule.env}.properties"/>
+	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="common.properties"/>
 	
 	<http:listener-config name="retail_product_availability_process_api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="${http.port}" />
     </http:listener-config>
     
-    <apikit:config name="retail_product_availability_process_api-config" raml="retail_product_availability_process_api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="retail_product_availability_process_api-config" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" api="api/retail_product_availability_process_api.raml"/>
 	
 	<retail-inventory-system-api:config
 		name="Retail_Inventory_System_API_Config" 
@@ -31,8 +33,10 @@ http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mules
 		property_host="${inventory-system-api.host}"
 		property_port="${inventory-system-api.port}" 
 		property_basePath="${inventory-system-api.basePath}" 
-		property_protocol="${inventory-system-api.protocol}" 
-	/>
+		property_protocol="${inventory-system-api.protocol}" >
+		<retail-inventory-system-api:connection />
+	</retail-inventory-system-api:config>
+		
 	<retail-partners-system-api:config 
 		name="Retail_Partners_System_API_Config" 
 		doc:name="Retail_Partners_System_API Config" 
@@ -40,8 +44,10 @@ http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mules
 		property_host="${partners-system-api.host}"
 		property_port="${partners-system-api.port}" 
 		property_basePath="${partners-system-api.basePath}" 
-		property_protocol="${partners-system-api.protocol}" 
-	/>
+		property_protocol="${partners-system-api.protocol}" >
+		<retail-partners-system-api:connection />
+	</retail-partners-system-api:config>
+		
 	<retail-locations-system-api:config 
 		name="Retail_Locations_System_API_Config" 
 		doc:name="Retail Locations System API Config" 
@@ -49,8 +55,10 @@ http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mules
 		property_host="${locations-system-api.host}"
 		property_port="${locations-system-api.port}" 
 		property_basePath="${locations-system-api.basePath}" 
-		property_protocol="${locations-system-api.protocol}" 
-	/>
+		property_protocol="${locations-system-api.protocol}" >
+		<retail-locations-system-api:connection />
+	</retail-locations-system-api:config>
+	
 	<retail-product-system-api:config 
 		name="Retail_Product_System_API_Config" 
 		doc:name="Retail Product System API Config" 
@@ -58,8 +66,7 @@ http://www.mulesoft.org/schema/mule/retail-inventory-system-api http://www.mules
 		property_host="${product-system-api.host}"
 		property_port="${product-system-api.port}" 
 		property_basePath="${product-system-api.basePath}" 
-		property_protocol="${product-system-api.protocol}" 
-	/>
-	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="mule.${mule.env}.properties"/>
-	<configuration-properties doc:name="Configuration properties" doc:id="3e606fae-61c6-405e-9f2d-03a62304a934" file="common.properties"/>
+		property_protocol="${product-system-api.protocol}" >
+		<retail-product-system-api:connection/>
+	</retail-product-system-api:config>
 </mule>
